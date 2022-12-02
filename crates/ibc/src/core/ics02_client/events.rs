@@ -3,12 +3,13 @@
 use derive_more::From;
 use ibc_proto::google::protobuf::Any;
 use subtle_encoding::hex;
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use crate::core::ics02_client::client_type::ClientType;
 use crate::core::ics02_client::height::Height;
 use crate::core::ics24_host::identifier::ClientId;
 use crate::events::IbcEventType;
+use crate::events::ModuleEventAttribute;
 use crate::prelude::*;
 
 /// The content of the `key` field for the attribute containing the client identifier.
@@ -45,7 +46,7 @@ struct ClientIdAttribute {
 
 impl From<ClientIdAttribute> for abci::EventAttribute {
     fn from(attr: ClientIdAttribute) -> Self {
-        (CLIENT_ID_ATTRIBUTE_KEY, attr.client_id.as_str()).into()
+        ModuleEventAttribute::from((CLIENT_ID_ATTRIBUTE_KEY, attr.client_id.as_str())).into()
     }
 }
 
@@ -69,7 +70,7 @@ struct ClientTypeAttribute {
 
 impl From<ClientTypeAttribute> for abci::EventAttribute {
     fn from(attr: ClientTypeAttribute) -> Self {
-        (CLIENT_TYPE_ATTRIBUTE_KEY, attr.client_type.as_str()).into()
+        ModuleEventAttribute::from((CLIENT_TYPE_ATTRIBUTE_KEY, attr.client_type.as_str())).into()
     }
 }
 
@@ -93,7 +94,7 @@ struct ConsensusHeightAttribute {
 
 impl From<ConsensusHeightAttribute> for abci::EventAttribute {
     fn from(attr: ConsensusHeightAttribute) -> Self {
-        (CONSENSUS_HEIGHT_ATTRIBUTE_KEY, attr.consensus_height).into()
+        ModuleEventAttribute::from((CONSENSUS_HEIGHT_ATTRIBUTE_KEY, attr.consensus_height)).into()
     }
 }
 
@@ -122,7 +123,8 @@ impl From<ConsensusHeightsAttribute> for abci::EventAttribute {
             .into_iter()
             .map(|consensus_height| consensus_height.to_string())
             .collect();
-        (CONSENSUS_HEIGHTS_ATTRIBUTE_KEY, consensus_heights.join(",")).into()
+        ModuleEventAttribute::from((CONSENSUS_HEIGHTS_ATTRIBUTE_KEY, consensus_heights.join(",")))
+            .into()
     }
 }
 
@@ -146,11 +148,11 @@ struct HeaderAttribute {
 
 impl From<HeaderAttribute> for abci::EventAttribute {
     fn from(attr: HeaderAttribute) -> Self {
-        (
+        ModuleEventAttribute::from((
             HEADER_ATTRIBUTE_KEY,
             String::from_utf8(hex::encode(attr.header.value)).unwrap(),
-        )
-            .into()
+        ))
+        .into()
     }
 }
 
@@ -200,7 +202,7 @@ impl CreateClient {
 impl From<CreateClient> for abci::Event {
     fn from(c: CreateClient) -> Self {
         Self {
-            kind: IbcEventType::CreateClient.as_str().to_owned(),
+            r#type: IbcEventType::CreateClient.as_str().to_owned(),
             attributes: vec![
                 c.client_id.into(),
                 c.client_type.into(),
@@ -276,7 +278,7 @@ impl UpdateClient {
 impl From<UpdateClient> for abci::Event {
     fn from(u: UpdateClient) -> Self {
         Self {
-            kind: IbcEventType::UpdateClient.as_str().to_owned(),
+            r#type: IbcEventType::UpdateClient.as_str().to_owned(),
             attributes: vec![
                 u.client_id.into(),
                 u.client_type.into(),
@@ -329,7 +331,7 @@ impl ClientMisbehaviour {
 impl From<ClientMisbehaviour> for abci::Event {
     fn from(c: ClientMisbehaviour) -> Self {
         Self {
-            kind: IbcEventType::ClientMisbehaviour.as_str().to_owned(),
+            r#type: IbcEventType::ClientMisbehaviour.as_str().to_owned(),
             attributes: vec![c.client_id.into(), c.client_type.into()],
         }
     }
@@ -381,7 +383,7 @@ impl UpgradeClient {
 impl From<UpgradeClient> for abci::Event {
     fn from(u: UpgradeClient) -> Self {
         Self {
-            kind: IbcEventType::UpgradeClient.as_str().to_owned(),
+            r#type: IbcEventType::UpgradeClient.as_str().to_owned(),
             attributes: vec![
                 u.client_id.into(),
                 u.client_type.into(),
@@ -397,7 +399,7 @@ mod tests {
     use crate::mock::header::MockHeader;
     use crate::timestamp::Timestamp;
     use ibc_proto::google::protobuf::Any;
-    use tendermint::abci::Event as AbciEvent;
+    use tendermint_proto::abci::Event as AbciEvent;
 
     #[test]
     fn ibc_to_abci_client_events() {
@@ -468,7 +470,7 @@ mod tests {
         ];
 
         for t in tests {
-            assert_eq!(t.event.kind, t.kind.as_str());
+            assert_eq!(t.event.r#type, t.kind.as_str());
             assert_eq!(t.expected_keys.len(), t.event.attributes.len());
             for (i, e) in t.event.attributes.iter().enumerate() {
                 assert_eq!(e.key, t.expected_keys[i], "key mismatch for {:?}", t.kind);
