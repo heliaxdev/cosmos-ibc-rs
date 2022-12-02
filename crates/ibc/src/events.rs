@@ -3,10 +3,10 @@ use crate::prelude::*;
 use core::convert::{TryFrom, TryInto};
 use core::str::FromStr;
 use displaydoc::Display;
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use crate::core::ics02_client::error as client_error;
-use crate::core::ics02_client::events::{self as ClientEvents};
+use crate::core::ics02_client::events as ClientEvents;
 use crate::core::ics03_connection::error as connection_error;
 use crate::core::ics03_connection::events as ConnectionEvents;
 use crate::core::ics04_channel::error as channel_error;
@@ -323,7 +323,7 @@ impl IbcEvent {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleEvent {
-    pub kind: String,
+    pub r#type: String,
     pub module_name: ModuleId,
     pub attributes: Vec<ModuleEventAttribute>,
 }
@@ -332,13 +332,13 @@ impl TryFrom<ModuleEvent> for abci::Event {
     type Error = Error;
 
     fn try_from(event: ModuleEvent) -> Result<Self, Self::Error> {
-        if IbcEventType::from_str(event.kind.as_str()).is_ok() {
+        if IbcEventType::from_str(event.r#type.as_str()).is_ok() {
             return Err(Error::MalformedModuleEvent { event });
         }
 
         let attributes = event.attributes.into_iter().map(Into::into).collect();
         Ok(abci::Event {
-            kind: event.kind,
+            r#type: event.r#type,
             attributes,
         })
     }
@@ -380,7 +380,11 @@ impl<K: ToString, V: ToString> From<(K, V)> for ModuleEventAttribute {
 
 impl From<ModuleEventAttribute> for abci::EventAttribute {
     fn from(attr: ModuleEventAttribute) -> Self {
-        (attr.key, attr.value).into()
+        Self {
+            key: attr.key,
+            value: attr.value,
+            index: false,
+        }
     }
 }
 

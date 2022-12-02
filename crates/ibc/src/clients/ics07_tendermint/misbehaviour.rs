@@ -5,7 +5,12 @@ use ibc_proto::google::protobuf::Any;
 use ibc_proto::ibc::lightclients::tendermint::v1::Misbehaviour as RawMisbehaviour;
 use ibc_proto::protobuf::Protobuf;
 use prost::Message;
-use tendermint_light_client_verifier::ProdVerifier;
+use tendermint::Hash;
+use tendermint_light_client_verifier::operations::{
+    CommitValidator, Hasher, ProdCommitValidator, ProdHasher,
+};
+use tendermint_light_client_verifier::types::UntrustedBlockState;
+use tendermint_light_client_verifier::Verdict;
 
 use crate::clients::ics07_tendermint::error::{Error, IntoResult};
 use crate::clients::ics07_tendermint::header::Header;
@@ -44,17 +49,15 @@ impl Misbehaviour {
         let untrusted_state_1 = header1.as_untrusted_block_state();
         let untrusted_state_2 = header2.as_untrusted_block_state();
 
-        let verifier = ProdVerifier::default();
+        Self::verify_cur_validator_sets(&untrusted_state_1)?;
+        Self::verify_cur_validator_sets(&untrusted_state_2)?;
+        Self::verify_next_validator_sets(&untrusted_state_1)?;
+        Self::verify_next_validator_sets(&untrusted_state_2)?;
 
-        verifier
-            .verify_validator_sets(&untrusted_state_1)
-            .into_result()?;
-        verifier
-            .verify_validator_sets(&untrusted_state_2)
-            .into_result()?;
-
-        verifier.verify_commit(&untrusted_state_1).into_result()?;
-        verifier.verify_commit(&untrusted_state_2).into_result()?;
+        Self::verify_header_commit(&untrusted_state_1)?;
+        Self::verify_header_commit(&untrusted_state_2)?;
+        Self::valid_commit(&untrusted_state_1)?;
+        Self::valid_commit(&untrusted_state_2)?;
 
         Ok(Self {
             client_id,
@@ -82,6 +85,74 @@ impl Misbehaviour {
         );
 
         self.header1.signed_header.header.chain_id.as_str() == chain_id.as_str()
+    }
+
+    fn verify_cur_validator_sets(untrusted_state: &UntrustedBlockState<'_>) -> Result<(), Error> {
+        let hasher = ProdHasher {};
+        let validators_hash = hasher.hash_validator_set(untrusted_state.validators);
+        let header_validators_hash = untrusted_state.signed_header.header.validators_hash;
+        Self::verify_validator_sets(validators_hash, header_validators_hash)
+    }
+
+    fn verify_next_validator_sets(untrusted_state: &UntrustedBlockState<'_>) -> Result<(), Error> {
+        let hasher = ProdHasher {};
+        match untrusted_state.next_validators {
+            Some(untrusted_next_validators) => {
+                let validators_hash = hasher.hash_validator_set(untrusted_next_validators);
+                let header_validators_hash =
+                    untrusted_state.signed_header.header.next_validators_hash;
+                Self::verify_validator_sets(validators_hash, header_validators_hash)
+            }
+            None => Ok(()),
+        }
+    }
+
+    fn verify_validator_sets(
+        validators_hash: Hash,
+        header_validators_hash: Hash,
+    ) -> Result<(), Error> {
+        if header_validators_hash == validators_hash {
+            Ok(())
+        } else {
+            Err(Error::Validation {
+                reason: format!(
+                    "invalid validator set: header_validators_hash {}, validators_hash {}",
+                    header_validators_hash, validators_hash
+                ),
+            })
+        }
+    }
+
+    fn verify_header_commit(untrusted_state: &UntrustedBlockState<'_>) -> Result<(), Error> {
+        let hasher = ProdHasher {};
+        let header_hash = hasher.hash_header(&untrusted_state.signed_header.header);
+        let commit_hash = untrusted_state.signed_header.commit.block_id.hash;
+        if header_hash == commit_hash {
+            Ok(())
+        } else {
+            Err(Error::Validation {
+                reason: format!(
+                    "invalid header commit: header_hash {}, commit_hash {}",
+                    header_hash, commit_hash
+                ),
+            })
+        }
+    }
+
+    fn valid_commit(untrusted_state: &UntrustedBlockState<'_>) -> Result<(), Error> {
+        let hasher = ProdHasher {};
+        let commit_validator = ProdCommitValidator::new(hasher);
+        let signed_header = untrusted_state.signed_header;
+        let validators = untrusted_state.validators;
+
+        let result: Verdict = commit_validator.validate(signed_header, validators).into();
+        result.into_result()?;
+        let result: Verdict = commit_validator
+            .validate_full(signed_header, validators)
+            .into();
+        result.into_result()?;
+
+        Ok(())
     }
 }
 
