@@ -316,14 +316,13 @@ impl ClientState {
         }
 
         let untrusted_state = header.as_untrusted_block_state();
-        let chain_id = self.chain_id.clone().into();
-        let trusted_state = header.as_trusted_block_state(consensus_state, &chain_id)?;
+        let trusted_state = header.as_trusted_block_state(consensus_state)?;
         let options = self.as_light_client_options()?;
 
         self.verifier
-            .validate_against_trusted(
-                &untrusted_state,
-                &trusted_state,
+            .verify(
+                untrusted_state,
+                trusted_state,
                 &options,
                 current_timestamp.into_tm_time().unwrap(),
             )
@@ -336,14 +335,19 @@ impl ClientState {
         &self,
         header: &Header,
         consensus_state: &TmConsensusState,
+        current_timestamp: Timestamp,
     ) -> Result<(), ClientError> {
         let untrusted_state = header.as_untrusted_block_state();
-        let chain_id = self.chain_id.clone().into();
-        let trusted_state = Header::as_trusted_block_state(header, consensus_state, &chain_id)?;
+        let trusted_state = Header::as_trusted_block_state(header, consensus_state)?;
         let options = self.as_light_client_options()?;
 
         self.verifier
-            .verify_commit_against_trusted(&untrusted_state, &trusted_state, &options)
+            .verify(
+                untrusted_state,
+                trusted_state,
+                &options,
+                current_timestamp.into_tm_time().unwrap(),
+            )
             .into_result()?;
 
         Ok(())
@@ -445,8 +449,8 @@ impl Ics2ClientState for ClientState {
         self.check_header_and_validator_set(header_1, &consensus_state_1, current_timestamp)?;
         self.check_header_and_validator_set(header_2, &consensus_state_2, current_timestamp)?;
 
-        self.verify_header_commit_against_trusted(header_1, &consensus_state_1)?;
-        self.verify_header_commit_against_trusted(header_2, &consensus_state_2)?;
+        self.verify_header_commit_against_trusted(header_1, &consensus_state_1, current_timestamp)?;
+        self.verify_header_commit_against_trusted(header_2, &consensus_state_2, current_timestamp)?;
 
         let client_state = downcast_tm_client_state(self)?.clone();
         Ok(client_state
@@ -528,7 +532,6 @@ impl Ics2ClientState for ClientState {
         )?;
 
         let trusted_state = TrustedBlockState {
-            chain_id: &self.chain_id.clone().into(),
             header_time: trusted_consensus_state.timestamp,
             height: header
                 .trusted_height
