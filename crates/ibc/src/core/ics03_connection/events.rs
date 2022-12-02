@@ -1,10 +1,10 @@
 //! Types for the IBC events emitted from Tendermint Websocket by the connection module.
 
 use serde_derive::{Deserialize, Serialize};
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use crate::core::ics24_host::identifier::{ClientId, ConnectionId};
-use crate::events::IbcEventType;
+use crate::events::{IbcEventType, ModuleEventAttribute};
 use crate::prelude::*;
 
 /// The content of the `key` field for the attribute containing the connection identifier.
@@ -24,23 +24,25 @@ struct Attributes {
 /// Convert attributes to Tendermint ABCI tags
 impl From<Attributes> for Vec<abci::EventAttribute> {
     fn from(a: Attributes) -> Self {
-        let conn_id = (CONN_ID_ATTRIBUTE_KEY, a.connection_id.as_str()).into();
-        let client_id = (CLIENT_ID_ATTRIBUTE_KEY, a.client_id.as_str()).into();
+        let conn_id =
+            ModuleEventAttribute::from((CONN_ID_ATTRIBUTE_KEY, a.connection_id.as_str())).into();
+        let client_id =
+            ModuleEventAttribute::from((CLIENT_ID_ATTRIBUTE_KEY, a.client_id.as_str())).into();
 
-        let counterparty_conn_id = (
+        let counterparty_conn_id = ModuleEventAttribute::from((
             COUNTERPARTY_CONN_ID_ATTRIBUTE_KEY,
             a.counterparty_connection_id
                 .as_ref()
                 .map(|id| id.as_str())
                 .unwrap_or(""),
-        )
-            .into();
+        ))
+        .into();
 
-        let counterparty_client_id = (
+        let counterparty_client_id = ModuleEventAttribute::from((
             COUNTERPARTY_CLIENT_ID_ATTRIBUTE_KEY,
             a.counterparty_client_id.as_str(),
-        )
-            .into();
+        ))
+        .into();
 
         vec![
             conn_id,
@@ -86,7 +88,7 @@ impl OpenInit {
 impl From<OpenInit> for abci::Event {
     fn from(v: OpenInit) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenInitConnection.as_str().to_owned(),
+            r#type: IbcEventType::OpenInitConnection.as_str().to_owned(),
             attributes: v.0.into(),
         }
     }
@@ -128,7 +130,7 @@ impl OpenTry {
 impl From<OpenTry> for abci::Event {
     fn from(v: OpenTry) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenTryConnection.as_str().to_owned(),
+            r#type: IbcEventType::OpenTryConnection.as_str().to_owned(),
             attributes: v.0.into(),
         }
     }
@@ -170,7 +172,7 @@ impl OpenAck {
 impl From<OpenAck> for abci::Event {
     fn from(v: OpenAck) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenAckConnection.as_str().to_owned(),
+            r#type: IbcEventType::OpenAckConnection.as_str().to_owned(),
             attributes: v.0.into(),
         }
     }
@@ -212,7 +214,7 @@ impl OpenConfirm {
 impl From<OpenConfirm> for abci::Event {
     fn from(v: OpenConfirm) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenConfirmConnection.as_str().to_owned(),
+            r#type: IbcEventType::OpenConfirmConnection.as_str().to_owned(),
             attributes: v.0.into(),
         }
     }
