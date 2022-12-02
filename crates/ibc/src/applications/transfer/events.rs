@@ -34,7 +34,7 @@ impl From<RecvEvent> for ModuleEvent {
             success,
         } = ev;
         Self {
-            kind: EVENT_TYPE_PACKET.to_string(),
+            r#type: EVENT_TYPE_PACKET.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![
                 ("receiver", receiver).into(),
@@ -62,7 +62,7 @@ impl From<AckEvent> for ModuleEvent {
             acknowledgement,
         } = ev;
         Self {
-            kind: EVENT_TYPE_PACKET.to_string(),
+            r#type: EVENT_TYPE_PACKET.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![
                 ("receiver", receiver).into(),
@@ -82,7 +82,7 @@ impl From<AckStatusEvent> for ModuleEvent {
     fn from(ev: AckStatusEvent) -> Self {
         let AckStatusEvent { acknowledgement } = ev;
         let mut event = Self {
-            kind: EVENT_TYPE_PACKET.to_string(),
+            r#type: EVENT_TYPE_PACKET.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![],
         };
@@ -111,7 +111,7 @@ impl From<TimeoutEvent> for ModuleEvent {
             refund_amount,
         } = ev;
         Self {
-            kind: EVENT_TYPE_TIMEOUT.to_string(),
+            r#type: EVENT_TYPE_TIMEOUT.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![
                 ("refund_receiver", refund_receiver).into(),
@@ -131,7 +131,7 @@ impl From<DenomTraceEvent> for ModuleEvent {
     fn from(ev: DenomTraceEvent) -> Self {
         let DenomTraceEvent { trace_hash, denom } = ev;
         let mut ev = Self {
-            kind: EVENT_TYPE_DENOM_TRACE.to_string(),
+            r#type: EVENT_TYPE_DENOM_TRACE.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![("denom", denom).into()],
         };
@@ -151,7 +151,7 @@ impl From<TransferEvent> for ModuleEvent {
     fn from(ev: TransferEvent) -> Self {
         let TransferEvent { sender, receiver } = ev;
         Self {
-            kind: EVENT_TYPE_TRANSFER.to_string(),
+            r#type: EVENT_TYPE_TRANSFER.to_string(),
             module_name: MODULE_ID_STR.parse().expect("invalid ModuleId"),
             attributes: vec![("sender", sender).into(), ("receiver", receiver).into()],
         }
