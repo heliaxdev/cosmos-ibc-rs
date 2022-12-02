@@ -3,12 +3,12 @@
 mod channel_attributes;
 mod packet_attributes;
 
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use crate::core::ics04_channel::error::ChannelError;
 use crate::core::ics04_channel::packet::Packet;
 use crate::core::ics24_host::identifier::{ChannelId, ConnectionId, PortId};
-use crate::events::IbcEventType;
+use crate::events::{IbcEventType, ModuleEventAttribute};
 use crate::prelude::*;
 use crate::timestamp::Timestamp;
 
@@ -87,12 +87,12 @@ impl OpenInit {
 impl From<OpenInit> for abci::Event {
     fn from(o: OpenInit) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenInitChannel.as_str().to_owned(),
+            r#type: IbcEventType::OpenInitChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
                 o.counterparty_port_id.into(),
-                (COUNTERPARTY_CHANNEL_ID_ATTRIBUTE_KEY, "").into(),
+                ModuleEventAttribute::from((COUNTERPARTY_CHANNEL_ID_ATTRIBUTE_KEY, "")).into(),
                 o.connection_id.into(),
                 o.version.into(),
             ],
@@ -164,7 +164,7 @@ impl OpenTry {
 impl From<OpenTry> for abci::Event {
     fn from(o: OpenTry) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenTryChannel.as_str().to_owned(),
+            r#type: IbcEventType::OpenTryChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
@@ -235,7 +235,7 @@ impl OpenAck {
 impl From<OpenAck> for abci::Event {
     fn from(o: OpenAck) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenAckChannel.as_str().to_owned(),
+            r#type: IbcEventType::OpenAckChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
@@ -305,7 +305,7 @@ impl OpenConfirm {
 impl From<OpenConfirm> for abci::Event {
     fn from(o: OpenConfirm) -> Self {
         abci::Event {
-            kind: IbcEventType::OpenConfirmChannel.as_str().to_owned(),
+            r#type: IbcEventType::OpenConfirmChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
@@ -375,7 +375,7 @@ impl CloseInit {
 impl From<CloseInit> for abci::Event {
     fn from(o: CloseInit) -> Self {
         abci::Event {
-            kind: IbcEventType::CloseInitChannel.as_str().to_owned(),
+            r#type: IbcEventType::CloseInitChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
@@ -445,7 +445,7 @@ impl CloseConfirm {
 impl From<CloseConfirm> for abci::Event {
     fn from(o: CloseConfirm) -> Self {
         abci::Event {
-            kind: IbcEventType::CloseConfirmChannel.as_str().to_owned(),
+            r#type: IbcEventType::CloseConfirmChannel.as_str().to_owned(),
             attributes: vec![
                 o.port_id.into(),
                 o.channel_id.into(),
@@ -527,13 +527,16 @@ impl ChannelClosed {
 impl From<ChannelClosed> for abci::Event {
     fn from(ev: ChannelClosed) -> Self {
         abci::Event {
-            kind: IbcEventType::ChannelClosed.as_str().to_owned(),
+            r#type: IbcEventType::ChannelClosed.as_str().to_owned(),
             attributes: vec![
                 ev.port_id.into(),
                 ev.channel_id.into(),
                 ev.counterparty_port_id.into(),
                 ev.maybe_counterparty_channel_id.map_or_else(
-                    || (COUNTERPARTY_CHANNEL_ID_ATTRIBUTE_KEY, "").into(),
+                    || {
+                        ModuleEventAttribute::from((COUNTERPARTY_CHANNEL_ID_ATTRIBUTE_KEY, ""))
+                            .into()
+                    },
                     |c| c.into(),
                 ),
                 ev.connection_id.into(),
@@ -644,7 +647,7 @@ impl TryFrom<SendPacket> for abci::Event {
         attributes.push(v.src_connection_id.into());
 
         Ok(abci::Event {
-            kind: IbcEventType::SendPacket.as_str().to_owned(),
+            r#type: IbcEventType::SendPacket.as_str().to_owned(),
             attributes,
         })
     }
@@ -751,7 +754,7 @@ impl TryFrom<ReceivePacket> for abci::Event {
         attributes.push(v.dst_connection_id.into());
 
         Ok(abci::Event {
-            kind: IbcEventType::ReceivePacket.as_str().to_owned(),
+            r#type: IbcEventType::ReceivePacket.as_str().to_owned(),
             attributes,
         })
     }
@@ -862,7 +865,7 @@ impl TryFrom<WriteAcknowledgement> for abci::Event {
         attributes.push(v.dst_connection_id.into());
 
         Ok(abci::Event {
-            kind: IbcEventType::WriteAck.as_str().to_owned(),
+            r#type: IbcEventType::WriteAck.as_str().to_owned(),
             attributes,
         })
     }
@@ -951,7 +954,7 @@ impl TryFrom<AcknowledgePacket> for abci::Event {
 
     fn try_from(v: AcknowledgePacket) -> Result<Self, Self::Error> {
         Ok(abci::Event {
-            kind: IbcEventType::AckPacket.as_str().to_owned(),
+            r#type: IbcEventType::AckPacket.as_str().to_owned(),
             attributes: vec![
                 v.timeout_height.into(),
                 v.timeout_timestamp.into(),
@@ -1044,7 +1047,7 @@ impl TryFrom<TimeoutPacket> for abci::Event {
 
     fn try_from(v: TimeoutPacket) -> Result<Self, Self::Error> {
         Ok(abci::Event {
-            kind: IbcEventType::Timeout.as_str().to_owned(),
+            r#type: IbcEventType::Timeout.as_str().to_owned(),
             attributes: vec![
                 v.timeout_height.into(),
                 v.timeout_timestamp.into(),
@@ -1062,7 +1065,7 @@ impl TryFrom<TimeoutPacket> for abci::Event {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tendermint::abci::Event as AbciEvent;
+    use tendermint_proto::abci::Event as AbciEvent;
 
     #[test]
     fn ibc_to_abci_channel_events() {
@@ -1183,7 +1186,7 @@ mod tests {
         ];
 
         for t in tests {
-            assert_eq!(t.kind.as_str(), t.event.kind);
+            assert_eq!(t.kind.as_str(), t.event.r#type);
             assert_eq!(t.expected_keys.len(), t.event.attributes.len());
             for (i, e) in t.event.attributes.iter().enumerate() {
                 assert_eq!(
