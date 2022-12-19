@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 
 use subtle_encoding::bech32;
-use tendermint::{block, consensus, evidence, public_key::Algorithm};
+use tendermint::consensus::params::{SynchronyParams, TimeoutParams};
+use tendermint::{block, consensus, duration::Duration, evidence, public_key::Algorithm};
 
 use crate::applications::transfer::context::{
     cosmos_adr028_escrow_address, BankKeeper, Ics20Context, Ics20Keeper, Ics20Reader,
@@ -36,17 +36,28 @@ pub fn default_consensus_params() -> consensus::Params {
         block: block::Size {
             max_bytes: 22020096,
             max_gas: -1,
-            time_iota_ms: 1000,
         },
         evidence: evidence::Params {
             max_age_num_blocks: 100000,
-            max_age_duration: evidence::Duration(core::time::Duration::new(48 * 3600, 0)),
+            max_age_duration: Duration::new(48 * 3600, 0),
             max_bytes: 0,
         },
         validator: consensus::params::ValidatorParams {
             pub_key_types: vec![Algorithm::Ed25519],
         },
         version: Some(consensus::params::VersionParams::default()),
+        synchrony: SynchronyParams {
+            message_delay: Duration::from_millis(505),
+            precision: Duration::from_secs(12),
+        },
+        timeout: TimeoutParams {
+            propose: Duration::from_millis(3000),
+            propose_delta: Duration::from_millis(500),
+            vote: Duration::from_millis(1000),
+            vote_delta: Duration::from_millis(500),
+            commit: Duration::from_millis(1000),
+            bypass_commit_timeout: false,
+        },
     }
 }
 
@@ -460,7 +471,7 @@ impl ChannelReader for DummyTransferModule {
         unimplemented!()
     }
 
-    fn max_expected_time_per_block(&self) -> Duration {
+    fn max_expected_time_per_block(&self) -> core::time::Duration {
         unimplemented!()
     }
 }

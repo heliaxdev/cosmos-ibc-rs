@@ -34,7 +34,7 @@ pub enum HostType {
     SyntheticTendermint,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct SyntheticTmBlock {
     pub trusted_height: Height,
     pub light_block: TmLightBlock,
@@ -48,7 +48,7 @@ impl SyntheticTmBlock {
 
 /// Depending on `HostType` (the type of host chain underlying a context mock), this enum defines
 /// the type of blocks composing the history of the host chain.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum HostBlock {
     Mock(MockHeader),
     SyntheticTendermint(SyntheticTmBlock),
