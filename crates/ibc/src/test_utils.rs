@@ -1,4 +1,5 @@
-use tendermint::{block, consensus, duration, evidence, public_key::Algorithm};
+use tendermint::consensus::params::{SynchronyParams, TimeoutParams};
+use tendermint::{block, consensus, duration::Duration, evidence, public_key::Algorithm};
 
 use crate::core::ics04_channel::channel::{Counterparty, Order};
 use crate::core::ics04_channel::error::{ChannelError, PacketError};
@@ -14,19 +15,31 @@ use crate::signer::Signer;
 // Needed in mocks.
 pub fn default_consensus_params() -> consensus::Params {
     consensus::Params {
-        block: Some(block::Size {
+        block: block::Size {
             max_bytes: 22020096,
             max_gas: -1,
-        }),
-        evidence: Some(evidence::Params {
+        },
+        evidence: evidence::Params {
             max_age_num_blocks: 100000,
-            max_age_duration: duration::Duration(core::time::Duration::new(48 * 3600, 0)),
+            max_age_duration: Duration::new(48 * 3600, 0),
             max_bytes: 0,
-        }),
-        validator: Some(consensus::params::ValidatorParams {
+        },
+        validator: consensus::params::ValidatorParams {
             pub_key_types: vec![Algorithm::Ed25519],
-        }),
+        },
         version: Some(consensus::params::VersionParams::default()),
+        synchrony: SynchronyParams {
+            message_delay: Duration::from_millis(505),
+            precision: Duration::from_secs(12),
+        },
+        timeout: TimeoutParams {
+            propose: Duration::from_millis(3000),
+            propose_delta: Duration::from_millis(500),
+            vote: Duration::from_millis(1000),
+            vote_delta: Duration::from_millis(500),
+            commit: Duration::from_millis(1000),
+            bypass_commit_timeout: false,
+        },
     }
 }
 
