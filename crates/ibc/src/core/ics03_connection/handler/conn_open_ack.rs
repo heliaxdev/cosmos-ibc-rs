@@ -103,11 +103,11 @@ where
                 prefix_on_b,
                 &msg.proof_client_state_of_a_on_b,
                 consensus_state_of_b_on_a.root(),
-                &ClientStatePath::new(vars.client_id_on_a()),
+                &ClientStatePath::new(vars.client_id_on_b()),
                 msg.client_state_of_a_on_b.clone(),
             )
             .map_err(|e| ConnectionError::ClientStateVerificationFailure {
-                client_id: vars.client_id_on_a().clone(),
+                client_id: vars.client_id_on_b().clone(),
                 client_error: e,
             })?;
 

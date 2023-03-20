@@ -111,7 +111,7 @@ where
             })?;
 
         let client_cons_state_path_on_a =
-            ClientConsensusStatePath::new(&msg.client_id_on_b, &msg.consensus_height_of_b_on_a);
+            ClientConsensusStatePath::new(client_id_on_a, &msg.consensus_height_of_b_on_a);
         client_state_of_a_on_b
             .verify_client_consensus_state(
                 msg.proofs_height_on_a,
@@ -121,8 +121,8 @@ where
                 &client_cons_state_path_on_a,
                 expected_consensus_state_of_b_on_a.as_ref(),
             )
-            .map_err(|e| ConnectionError::ClientStateVerificationFailure {
-                client_id: client_id_on_a.clone(),
+            .map_err(|e| ConnectionError::ConsensusStateVerificationFailure {
+                height: msg.proofs_height_on_a,
                 client_error: e,
             })?;
     }
@@ -157,7 +157,7 @@ where
         conn_id_on_a.clone(),
         vars.client_id_on_a.clone(),
     )));
-    ctx_b.log_message("success: conn_open_try verification passed".to_string());
+    ctx_b.log_message("success: conn_open_try execution passed".to_string());
 
     ctx_b.increase_connection_counter();
     ctx_b.store_connection_to_client(
