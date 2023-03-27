@@ -394,15 +394,15 @@ fn try_message_event_from_event_type(event_type: IbcEventType) -> Result<abci::E
         | IbcEventType::UpdateClient
         | IbcEventType::UpgradeClient
         | IbcEventType::ClientMisbehaviour => Ok(abci::Event {
-            kind: "message".to_string(),
-            attributes: vec![("module", "ibc_client", true).into()],
+            r#type: "message".to_string(),
+            attributes: vec![ModuleEventAttribute::from(("module", "ibc_client")).into()],
         }),
         IbcEventType::OpenInitConnection
         | IbcEventType::OpenTryConnection
         | IbcEventType::OpenAckConnection
         | IbcEventType::OpenConfirmConnection => Ok(abci::Event {
-            kind: "message".to_string(),
-            attributes: vec![("module", "ibc_connection", true).into()],
+            r#type: "message".to_string(),
+            attributes: vec![ModuleEventAttribute::from(("module", "ibc_connection")).into()],
         }),
         IbcEventType::OpenInitChannel
         | IbcEventType::OpenTryChannel
@@ -416,8 +416,8 @@ fn try_message_event_from_event_type(event_type: IbcEventType) -> Result<abci::E
         | IbcEventType::AckPacket
         | IbcEventType::Timeout
         | IbcEventType::ChannelClosed => Ok(abci::Event {
-            kind: "message".to_string(),
-            attributes: vec![("module", "ibc_channel", true).into()],
+            r#type: "message".to_string(),
+            attributes: vec![ModuleEventAttribute::from(("module", "ibc_channel")).into()],
         }),
         _ => Err(Error::IncorrectEventType {
             event: event_type.as_str().to_string(),
