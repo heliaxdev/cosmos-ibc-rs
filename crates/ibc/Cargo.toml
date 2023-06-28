@@ -52,7 +52,7 @@ mocks-no-std = ["cfg-if"]
 
 [dependencies]
 # Proto definitions for all IBC-related interfaces, e.g., connections or channels.
-ibc-proto = { git = "https://github.com/heliaxdev/ibc-proto-rs", rev = "6f4038fcf4981f1ed70771d1cd89931267f917af", default-features = false }
+ibc-proto = { git = "https://github.com/heliaxdev/ibc-proto-rs", rev = "277f31a69583c12bf8d54a92b5541d8b738d9962", default-features = false }
 ics23 = { version = "0.9.0", default-features = false, features = ["host-functions"] }
 time = { version = ">=0.3.0, <0.3.21", default-features = false }
 serde_derive = { version = "1.0.104", default-features = false, optional = true }
