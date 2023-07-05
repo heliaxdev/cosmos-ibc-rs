@@ -1,8 +1,5 @@
-use core::convert::Infallible;
-
 use alloc::boxed::Box;
 use alloc::string::ToString;
-use tendermint::abci::Event as TmEvent;
 use tendermint_proto::abci::Event as ProtoEvent;
 
 use crate::clients::ics07_tendermint::client_state::ClientState as TmClientState;
@@ -45,11 +42,7 @@ where
 
     ctx.store_upgraded_client_state(upgraded_client_state_path, Box::new(client_state))?;
 
-    let event = TmEvent::from(UpgradeClientProposal::new(proposal.title, plan.height))
-        .try_into()
-        .map_err(|e: Infallible| UpgradeClientError::Other {
-            reason: e.to_string(),
-        })?;
+    let event = UpgradeClientProposal::new(proposal.title, plan.height).into();
 
     Ok(event)
 }

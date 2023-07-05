@@ -1,8 +1,9 @@
 //! Types for the IBC events emitted from Tendermint Websocket by the connection module.
 
 use crate::prelude::*;
-use tendermint::abci;
+use tendermint_proto::abci;
 
+use crate::core::events::ModuleEventAttribute;
 use crate::core::ics24_host::identifier::{ClientId, ConnectionId};
 
 /// Connection event types
@@ -41,23 +42,25 @@ struct Attributes {
 /// Convert attributes to Tendermint ABCI tags
 impl From<Attributes> for Vec<abci::EventAttribute> {
     fn from(a: Attributes) -> Self {
-        let conn_id = (CONN_ID_ATTRIBUTE_KEY, a.connection_id.as_str()).into();
-        let client_id = (CLIENT_ID_ATTRIBUTE_KEY, a.client_id.as_str()).into();
+        let conn_id =
+            ModuleEventAttribute::from((CONN_ID_ATTRIBUTE_KEY, a.connection_id.as_str())).into();
+        let client_id =
+            ModuleEventAttribute::from((CLIENT_ID_ATTRIBUTE_KEY, a.client_id.as_str())).into();
 
-        let counterparty_conn_id = (
+        let counterparty_conn_id = ModuleEventAttribute::from((
             COUNTERPARTY_CONN_ID_ATTRIBUTE_KEY,
             a.counterparty_connection_id
                 .as_ref()
                 .map(|id| id.as_str())
                 .unwrap_or(""),
-        )
-            .into();
+        ))
+        .into();
 
-        let counterparty_client_id = (
+        let counterparty_client_id = ModuleEventAttribute::from((
             COUNTERPARTY_CLIENT_ID_ATTRIBUTE_KEY,
             a.counterparty_client_id.as_str(),
-        )
-            .into();
+        ))
+        .into();
 
         vec![
             conn_id,
@@ -120,7 +123,7 @@ impl OpenInit {
 impl From<OpenInit> for abci::Event {
     fn from(v: OpenInit) -> Self {
         abci::Event {
-            kind: CONNECTION_OPEN_INIT_EVENT.to_string(),
+            r#type: CONNECTION_OPEN_INIT_EVENT.to_string(),
             attributes: v.0.into(),
         }
     }
@@ -179,7 +182,7 @@ impl OpenTry {
 impl From<OpenTry> for abci::Event {
     fn from(v: OpenTry) -> Self {
         abci::Event {
-            kind: CONNECTION_OPEN_TRY_EVENT.to_string(),
+            r#type: CONNECTION_OPEN_TRY_EVENT.to_string(),
             attributes: v.0.into(),
         }
     }
@@ -238,7 +241,7 @@ impl OpenAck {
 impl From<OpenAck> for abci::Event {
     fn from(v: OpenAck) -> Self {
         abci::Event {
-            kind: CONNECTION_OPEN_ACK_EVENT.to_string(),
+            r#type: CONNECTION_OPEN_ACK_EVENT.to_string(),
             attributes: v.0.into(),
         }
     }
@@ -297,7 +300,7 @@ impl OpenConfirm {
 impl From<OpenConfirm> for abci::Event {
     fn from(v: OpenConfirm) -> Self {
         abci::Event {
-            kind: CONNECTION_OPEN_CONFIRM_EVENT.to_string(),
+            r#type: CONNECTION_OPEN_CONFIRM_EVENT.to_string(),
             attributes: v.0.into(),
         }
     }
@@ -308,7 +311,7 @@ mod tests {
 
     use super::*;
     use crate::core::ics02_client::client_type::ClientType;
-    use tendermint::abci::Event as AbciEvent;
+    use tendermint_proto::abci::Event as AbciEvent;
 
     #[test]
     fn ibc_to_abci_connection_events() {
@@ -387,7 +390,7 @@ mod tests {
         ];
 
         for t in tests {
-            assert_eq!(t.kind, t.event.kind);
+            assert_eq!(t.kind, t.event.r#type);
             assert_eq!(t.expected_keys.len(), t.event.attributes.len());
             for (i, e) in t.event.attributes.iter().enumerate() {
                 assert_eq!(e.key, t.expected_keys[i], "key mismatch for {:?}", t.kind);

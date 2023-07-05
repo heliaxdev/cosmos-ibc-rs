@@ -4,7 +4,9 @@ use alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use derive_more::From;
-use tendermint::abci;
+use tendermint_proto::abci;
+
+use crate::core::events::ModuleEventAttribute;
 
 const UPGRADE_CHAIN_EVENT: &str = "upgrade_chain";
 const UPGRADE_CLIENT_PROPOSAL_EVENT: &str = "upgrade_client_proposal";
@@ -33,7 +35,7 @@ struct UpgradeStoreAttribute {
 
 impl From<UpgradeStoreAttribute> for abci::EventAttribute {
     fn from(attr: UpgradeStoreAttribute) -> Self {
-        (KEY_UPGRADE_STORE_ATTRIBUTE_KEY, attr.upgrade_store).into()
+        ModuleEventAttribute::from((KEY_UPGRADE_STORE_ATTRIBUTE_KEY, attr.upgrade_store)).into()
     }
 }
 
@@ -57,11 +59,11 @@ struct UpgradePlanHeightAttribute {
 
 impl From<UpgradePlanHeightAttribute> for abci::EventAttribute {
     fn from(attr: UpgradePlanHeightAttribute) -> Self {
-        (
+        ModuleEventAttribute::from((
             UPGRADE_PLAN_HEIGHT_ATTRIBUTE_KEY,
             attr.plan_height.to_string(),
-        )
-            .into()
+        ))
+        .into()
     }
 }
 
@@ -85,7 +87,7 @@ struct UpgradePlanTitleAttribute {
 
 impl From<UpgradePlanTitleAttribute> for abci::EventAttribute {
     fn from(attr: UpgradePlanTitleAttribute) -> Self {
-        (UPGRADE_PLAN_TITLE_ATTRIBUTE_KEY, attr.title).into()
+        ModuleEventAttribute::from((UPGRADE_PLAN_TITLE_ATTRIBUTE_KEY, attr.title)).into()
     }
 }
 
@@ -126,7 +128,7 @@ impl UpgradeChain {
 impl From<UpgradeChain> for abci::Event {
     fn from(u: UpgradeChain) -> Self {
         Self {
-            kind: UPGRADE_CHAIN_EVENT.to_owned(),
+            r#type: UPGRADE_CHAIN_EVENT.to_owned(),
             attributes: vec![u.plan_height.into(), u.upgrade_store.into()],
         }
     }
@@ -169,7 +171,7 @@ impl UpgradeClientProposal {
 impl From<UpgradeClientProposal> for abci::Event {
     fn from(u: UpgradeClientProposal) -> Self {
         Self {
-            kind: UPGRADE_CLIENT_PROPOSAL_EVENT.to_owned(),
+            r#type: UPGRADE_CLIENT_PROPOSAL_EVENT.to_owned(),
             attributes: vec![u.plan_title.into(), u.plan_height.into()],
         }
     }

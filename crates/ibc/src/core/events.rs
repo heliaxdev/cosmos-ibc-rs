@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 use core::convert::{TryFrom, TryInto};
 use displaydoc::Display;
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use crate::core::ics02_client::error as client_error;
 use crate::core::ics02_client::events::{self as ClientEvents};
@@ -127,8 +127,10 @@ impl TryFrom<IbcEvent> for abci::Event {
             IbcEvent::ChannelClosed(event) => event.into(),
             IbcEvent::Module(event) => event.try_into()?,
             IbcEvent::Message(event) => abci::Event {
-                kind: MESSAGE_EVENT.to_string(),
-                attributes: vec![("module", event.module_attribute(), true).into()],
+                r#type: MESSAGE_EVENT.to_string(),
+                attributes: vec![
+                    ModuleEventAttribute::from(("module", event.module_attribute())).into(),
+                ],
             },
         })
     }
@@ -189,7 +191,7 @@ impl TryFrom<ModuleEvent> for abci::Event {
     fn try_from(event: ModuleEvent) -> Result<Self, Self::Error> {
         let attributes = event.attributes.into_iter().map(Into::into).collect();
         Ok(abci::Event {
-            kind: event.kind,
+            r#type: event.kind,
             attributes,
         })
     }
@@ -232,7 +234,11 @@ impl<K: ToString, V: ToString> From<(K, V)> for ModuleEventAttribute {
 
 impl From<ModuleEventAttribute> for abci::EventAttribute {
     fn from(attr: ModuleEventAttribute) -> Self {
-        (attr.key, attr.value).into()
+        Self {
+            key: attr.key,
+            value: attr.value,
+            index: false,
+        }
     }
 }
 

@@ -67,10 +67,9 @@ impl Header {
     pub(crate) fn as_trusted_block_state<'a>(
         &'a self,
         consensus_state: &ConsensusState,
-        chain_id: &'a TmChainId,
+        _chain_id: &'a TmChainId,
     ) -> Result<TrustedBlockState<'a>, Error> {
         Ok(TrustedBlockState {
-            chain_id,
             header_time: consensus_state.timestamp,
             height: self
                 .trusted_height

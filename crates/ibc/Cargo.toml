@@ -103,5 +103,6 @@ rstest = "0.16.0"
 tracing-subscriber = { version = "0.3.14", features = ["fmt", "env-filter", "json"]}
 test-log = { version = "0.2.10", features = ["trace"] }
 tendermint-rpc = { git = "https://github.com/heliaxdev/tendermint-rs", rev = "b7d1e5afc6f2ccb3fd1545c2174bab1cc48d7fa7", features = ["http-client", "websocket-client"] }
+tendermint-testgen = { git = "https://github.com/heliaxdev/tendermint-rs", rev = "b7d1e5afc6f2ccb3fd1545c2174bab1cc48d7fa7" } # Needed for generating (synthetic) light blocks.
 parking_lot = { version = "0.12.1" }
 cfg-if = { version = "1.0.0" }

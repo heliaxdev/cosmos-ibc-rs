@@ -1,6 +1,7 @@
 use crate::core::timestamp::Timestamp;
 use crate::prelude::*;
 
+use crate::core::events::ModuleEventAttribute;
 use crate::core::{
     ics04_channel::{
         channel::Order,
@@ -12,7 +13,7 @@ use crate::core::{
 };
 use derive_more::From;
 use subtle_encoding::hex;
-use tendermint::abci;
+use tendermint_proto::abci;
 
 use core::str;
 
@@ -56,16 +57,16 @@ impl TryFrom<PacketDataAttribute> for Vec<abci::EventAttribute> {
 
     fn try_from(attr: PacketDataAttribute) -> Result<Self, Self::Error> {
         let tags = vec![
-            (
+            ModuleEventAttribute::from((
                 PKT_DATA_ATTRIBUTE_KEY,
                 str::from_utf8(&attr.packet_data).map_err(|_| ChannelError::NonUtf8PacketData)?,
-            )
-                .into(),
-            (
+            ))
+            .into(),
+            ModuleEventAttribute::from((
                 PKT_DATA_HEX_ATTRIBUTE_KEY,
                 String::from_utf8(hex::encode(attr.packet_data)).unwrap(),
-            )
-                .into(),
+            ))
+            .into(),
         ];
 
         Ok(tags)
@@ -93,9 +94,12 @@ pub struct TimeoutHeightAttribute {
 impl From<TimeoutHeightAttribute> for abci::EventAttribute {
     fn from(attr: TimeoutHeightAttribute) -> Self {
         match attr.timeout_height {
-            TimeoutHeight::Never => (PKT_TIMEOUT_HEIGHT_ATTRIBUTE_KEY, "0-0").into(),
+            TimeoutHeight::Never => {
+                ModuleEventAttribute::from((PKT_TIMEOUT_HEIGHT_ATTRIBUTE_KEY, "0-0")).into()
+            }
             TimeoutHeight::At(height) => {
-                (PKT_TIMEOUT_HEIGHT_ATTRIBUTE_KEY, height.to_string()).into()
+                ModuleEventAttribute::from((PKT_TIMEOUT_HEIGHT_ATTRIBUTE_KEY, height.to_string()))
+                    .into()
             }
         }
     }
@@ -121,11 +125,11 @@ pub struct TimeoutTimestampAttribute {
 
 impl From<TimeoutTimestampAttribute> for abci::EventAttribute {
     fn from(attr: TimeoutTimestampAttribute) -> Self {
-        (
+        ModuleEventAttribute::from((
             PKT_TIMEOUT_TIMESTAMP_ATTRIBUTE_KEY,
             attr.timeout_timestamp.nanoseconds().to_string(),
-        )
-            .into()
+        ))
+        .into()
     }
 }
 
@@ -149,7 +153,7 @@ pub struct SequenceAttribute {
 
 impl From<SequenceAttribute> for abci::EventAttribute {
     fn from(attr: SequenceAttribute) -> Self {
-        (PKT_SEQ_ATTRIBUTE_KEY, attr.sequence.to_string()).into()
+        ModuleEventAttribute::from((PKT_SEQ_ATTRIBUTE_KEY, attr.sequence.to_string())).into()
     }
 }
 
@@ -173,7 +177,7 @@ pub struct SrcPortIdAttribute {
 
 impl From<SrcPortIdAttribute> for abci::EventAttribute {
     fn from(attr: SrcPortIdAttribute) -> Self {
-        (PKT_SRC_PORT_ATTRIBUTE_KEY, attr.src_port_id.as_str()).into()
+        ModuleEventAttribute::from((PKT_SRC_PORT_ATTRIBUTE_KEY, attr.src_port_id.as_str())).into()
     }
 }
 
@@ -197,7 +201,8 @@ pub struct SrcChannelIdAttribute {
 
 impl From<SrcChannelIdAttribute> for abci::EventAttribute {
     fn from(attr: SrcChannelIdAttribute) -> Self {
-        (PKT_SRC_CHANNEL_ATTRIBUTE_KEY, attr.src_channel_id.as_str()).into()
+        ModuleEventAttribute::from((PKT_SRC_CHANNEL_ATTRIBUTE_KEY, attr.src_channel_id.as_str()))
+            .into()
     }
 }
 
@@ -221,7 +226,7 @@ pub struct DstPortIdAttribute {
 
 impl From<DstPortIdAttribute> for abci::EventAttribute {
     fn from(attr: DstPortIdAttribute) -> Self {
-        (PKT_DST_PORT_ATTRIBUTE_KEY, attr.dst_port_id.as_str()).into()
+        ModuleEventAttribute::from((PKT_DST_PORT_ATTRIBUTE_KEY, attr.dst_port_id.as_str())).into()
     }
 }
 
@@ -245,7 +250,8 @@ pub struct DstChannelIdAttribute {
 
 impl From<DstChannelIdAttribute> for abci::EventAttribute {
     fn from(attr: DstChannelIdAttribute) -> Self {
-        (PKT_DST_CHANNEL_ATTRIBUTE_KEY, attr.dst_channel_id.as_str()).into()
+        ModuleEventAttribute::from((PKT_DST_CHANNEL_ATTRIBUTE_KEY, attr.dst_channel_id.as_str()))
+            .into()
     }
 }
 
@@ -269,7 +275,7 @@ pub struct ChannelOrderingAttribute {
 
 impl From<ChannelOrderingAttribute> for abci::EventAttribute {
     fn from(attr: ChannelOrderingAttribute) -> Self {
-        (PKT_CHANNEL_ORDERING_ATTRIBUTE_KEY, attr.order.as_str()).into()
+        ModuleEventAttribute::from((PKT_CHANNEL_ORDERING_ATTRIBUTE_KEY, attr.order.as_str())).into()
     }
 }
 
@@ -293,7 +299,8 @@ pub struct PacketConnectionIdAttribute {
 
 impl From<PacketConnectionIdAttribute> for abci::EventAttribute {
     fn from(attr: PacketConnectionIdAttribute) -> Self {
-        (PKT_CONNECTION_ID_ATTRIBUTE_KEY, attr.connection_id.as_str()).into()
+        ModuleEventAttribute::from((PKT_CONNECTION_ID_ATTRIBUTE_KEY, attr.connection_id.as_str()))
+            .into()
     }
 }
 
@@ -320,7 +327,7 @@ impl TryFrom<AcknowledgementAttribute> for Vec<abci::EventAttribute> {
 
     fn try_from(attr: AcknowledgementAttribute) -> Result<Self, Self::Error> {
         let tags = vec![
-            (
+            ModuleEventAttribute::from((
                 PKT_ACK_ATTRIBUTE_KEY,
                 // Note: this attribute forces us to assume that Packet data
                 // is valid UTF-8, even though the standard doesn't require
@@ -328,13 +335,13 @@ impl TryFrom<AcknowledgementAttribute> for Vec<abci::EventAttribute> {
                 // in the future.
                 str::from_utf8(attr.acknowledgement.as_bytes())
                     .map_err(|_| ChannelError::NonUtf8PacketData)?,
-            )
-                .into(),
-            (
+            ))
+            .into(),
+            ModuleEventAttribute::from((
                 PKT_ACK_HEX_ATTRIBUTE_KEY,
                 String::from_utf8(hex::encode(attr.acknowledgement)).unwrap(),
-            )
-                .into(),
+            ))
+            .into(),
         ];
 
         Ok(tags)
