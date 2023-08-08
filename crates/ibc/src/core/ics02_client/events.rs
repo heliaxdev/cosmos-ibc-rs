@@ -3,6 +3,7 @@ use crate::prelude::*;
 
 use derive_more::From;
 use ibc_proto::google::protobuf::Any;
+use prost::Message;
 use subtle_encoding::hex;
 use tendermint_proto::abci;
 
@@ -154,9 +155,10 @@ struct HeaderAttribute {
 
 impl From<HeaderAttribute> for abci::EventAttribute {
     fn from(attr: HeaderAttribute) -> Self {
+        let bytes = attr.header.encode_to_vec();
         ModuleEventAttribute::from((
             HEADER_ATTRIBUTE_KEY,
-            String::from_utf8(hex::encode(attr.header.value)).unwrap(),
+            String::from_utf8(hex::encode(bytes)).unwrap(),
         ))
         .into()
     }
@@ -452,7 +454,7 @@ mod tests {
             "07-tendermint",
             "0-5",
             "0-5,0-7",
-            "0a021005",
+            "0a102f6962632e6d6f636b2e48656164657212040a021005",
         ];
 
         let tests: Vec<Test> = vec![
