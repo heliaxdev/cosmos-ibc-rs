@@ -342,6 +342,7 @@ impl ConnectionEnd {
     }
 }
 
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(
     feature = "parity-scale-codec",
     derive(
