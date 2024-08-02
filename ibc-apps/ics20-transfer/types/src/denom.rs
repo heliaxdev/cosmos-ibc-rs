@@ -15,6 +15,7 @@ use super::error::TokenTransferError;
 ///
 /// For example, given the token `my_port-1/my_channel-1/my_port-2/my_channel-2/base_denom`,
 /// `base_denom` is the "base" of the denomination
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(
@@ -56,6 +57,7 @@ impl FromStr for BaseDenom {
 /// For example, given the token `my_port-1/my_channel-1/my_port-2/my_channel-2/base_denom`,
 /// `my_port-1/my_channel-1` is a trace prefix, and `my_port-2/my_channel-2` is another one.
 /// See [TracePath] which stitches trace prefixes together.
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(
     feature = "parity-scale-codec",
     derive(
@@ -123,6 +125,7 @@ impl Display for TracePrefix {
 /// Internally, the `TracePath` is modelled as a `Vec<TracePrefix>` but with the order reversed, i.e.
 /// "transfer/channel-0/transfer/channel-1/uatom" => `["transfer/channel-1", "transfer/channel-0"]`
 /// This is done for ease of addition/removal of prefixes.
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(
     feature = "parity-scale-codec",
     derive(
@@ -237,6 +240,7 @@ impl Display for TracePath {
 }
 
 /// A type that contains the base denomination for ICS20 and the source tracing information path.
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
