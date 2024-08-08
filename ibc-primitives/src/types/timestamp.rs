@@ -389,7 +389,7 @@ mod tests {
 #[cfg(feature = "arbitrary")]
 fn arb_tendermint_time(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Option<Time>> {
     Ok(if <bool as arbitrary::Arbitrary>::arbitrary(u)? {
-        let secs: i64 = arbitrary::Arbitrary::arbitrary(u)?;
+        let secs: i64 = u.int_in_range(0..=i64::MAX)?;
         let nanos: u32 = u.int_in_range(0..=999_999_999)?;
         Some(
             Time::from_unix_timestamp(secs, nanos)
