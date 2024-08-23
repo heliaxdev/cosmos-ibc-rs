@@ -129,6 +129,12 @@ where
         .map_err(serde::de::Error::custom)
 }
 
+#[cfg(feature = "arbitrary")]
+fn arb_u256(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<U256> {
+    let parts: [u8; 32] = arbitrary::Arbitrary::arbitrary(u)?;
+    Ok(U256::from_big_endian(&parts))
+}
+
 #[cfg(test)]
 mod tests {
     use super::Amount;
@@ -157,10 +163,4 @@ mod tests {
 
         assert_eq!(value, value_deserialized);
     }
-}
-
-#[cfg(feature = "arbitrary")]
-fn arb_u256(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<U256> {
-    let parts: [u8; 32] = arbitrary::Arbitrary::arbitrary(u)?;
-    Ok(U256::from_big_endian(&parts))
 }
