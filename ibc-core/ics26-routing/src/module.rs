@@ -127,7 +127,7 @@ pub trait Module: Debug {
         &mut self,
         packet: &Packet,
         relayer: &Signer,
-    ) -> (ModuleExtras, Acknowledgement);
+    ) -> (ModuleExtras, Option<Acknowledgement>);
 
     fn on_acknowledgement_packet_validate(
         &self,

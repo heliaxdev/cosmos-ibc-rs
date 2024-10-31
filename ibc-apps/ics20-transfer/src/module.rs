@@ -169,11 +169,11 @@ pub fn on_chan_close_confirm_execute(
 pub fn on_recv_packet_execute(
     ctx_b: &mut impl TokenTransferExecutionContext,
     packet: &Packet,
-) -> (ModuleExtras, Acknowledgement) {
+) -> (ModuleExtras, Option<Acknowledgement>) {
     let Ok(data) = serde_json::from_slice::<PacketData>(&packet.data) else {
         let ack =
             AcknowledgementStatus::error(TokenTransferError::PacketDataDeserialization.into());
-        return (ModuleExtras::empty(), ack.into());
+        return (ModuleExtras::empty(), Some(ack.into()));
     };
 
     let (mut extras, ack) = match process_recv_packet_execute(ctx_b, packet, data.clone()) {
@@ -191,7 +191,7 @@ pub fn on_recv_packet_execute(
     };
     extras.events.push(recv_event.into());
 
-    (extras, ack.into())
+    (extras, Some(ack.into()))
 }
 
 pub fn on_acknowledgement_packet_validate<Ctx>(
