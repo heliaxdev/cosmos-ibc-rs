@@ -11,8 +11,11 @@ pub trait TokenTransferValidationContext {
     /// Native chain account id.
     type AccountId;
 
-    /// Attempt to convert a [`Signer`] to a native chain account id.
-    fn account_id_from_signer(&self, signer: &Signer) -> Option<Self::AccountId>;
+    /// Attempt to convert a [`Signer`] to a native chain sender account.
+    fn sender_account_from_signer(&self, signer: &Signer) -> Option<Self::AccountId>;
+
+    /// Attempt to convert a [`Signer`] to a native chain receiver account.
+    fn receiver_account_from_signer(&self, signer: &Signer) -> Option<Self::AccountId>;
 
     /// get_port returns the portID for the transfer module.
     fn get_port(&self) -> Result<PortId, TokenTransferError>;

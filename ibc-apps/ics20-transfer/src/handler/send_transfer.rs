@@ -57,7 +57,7 @@ where
     let token = &msg.packet_data.token;
 
     let sender = token_ctx_a
-        .account_id_from_signer(&msg.packet_data.sender)
+        .sender_account_from_signer(&msg.packet_data.sender)
         .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
@@ -127,7 +127,7 @@ where
     let token = &msg.packet_data.token;
 
     let sender = token_ctx_a
-        .account_id_from_signer(&msg.packet_data.sender)
+        .sender_account_from_signer(&msg.packet_data.sender)
         .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(

@@ -9,7 +9,11 @@ use super::types::DummyTransferModule;
 impl TokenTransferValidationContext for DummyTransferModule {
     type AccountId = Signer;
 
-    fn account_id_from_signer(&self, signer: &Signer) -> Option<Self::AccountId> {
+    fn sender_account_from_signer(&self, signer: &Signer) -> Option<Self::AccountId> {
+        Some(signer.clone())
+    }
+
+    fn receiver_account_from_signer(&self, signer: &Signer) -> Option<Self::AccountId> {
         Some(signer.clone())
     }
 

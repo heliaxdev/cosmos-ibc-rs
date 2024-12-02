@@ -17,7 +17,7 @@ pub fn refund_packet_token_execute(
     data: &PacketData,
 ) -> Result<(), TokenTransferError> {
     let sender = ctx_a
-        .account_id_from_signer(&data.sender)
+        .sender_account_from_signer(&data.sender)
         .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
@@ -44,7 +44,7 @@ pub fn refund_packet_token_validate(
     data: &PacketData,
 ) -> Result<(), TokenTransferError> {
     let sender = ctx_a
-        .account_id_from_signer(&data.sender)
+        .sender_account_from_signer(&data.sender)
         .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
