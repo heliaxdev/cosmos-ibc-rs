@@ -16,11 +16,9 @@ pub fn refund_packet_token_execute(
     packet: &Packet,
     data: &PacketData,
 ) -> Result<(), TokenTransferError> {
-    let sender = data
-        .sender
-        .clone()
-        .try_into()
-        .map_err(|_| TokenTransferError::ParseAccountFailure)?;
+    let sender = ctx_a
+        .account_id_from_signer(&data.sender)
+        .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
         packet.port_id_on_a.clone(),
@@ -45,11 +43,9 @@ pub fn refund_packet_token_validate(
     packet: &Packet,
     data: &PacketData,
 ) -> Result<(), TokenTransferError> {
-    let sender = data
-        .sender
-        .clone()
-        .try_into()
-        .map_err(|_| TokenTransferError::ParseAccountFailure)?;
+    let sender = ctx_a
+        .account_id_from_signer(&data.sender)
+        .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
         packet.port_id_on_a.clone(),

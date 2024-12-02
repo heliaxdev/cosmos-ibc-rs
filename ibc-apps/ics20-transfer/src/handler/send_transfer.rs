@@ -56,12 +56,9 @@ where
 
     let token = &msg.packet_data.token;
 
-    let sender: TokenCtx::AccountId = msg
-        .packet_data
-        .sender
-        .clone()
-        .try_into()
-        .map_err(|_| TokenTransferError::ParseAccountFailure)?;
+    let sender = token_ctx_a
+        .account_id_from_signer(&msg.packet_data.sender)
+        .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
         msg.port_id_on_a.clone(),
@@ -129,12 +126,9 @@ where
 
     let token = &msg.packet_data.token;
 
-    let sender = msg
-        .packet_data
-        .sender
-        .clone()
-        .try_into()
-        .map_err(|_| TokenTransferError::ParseAccountFailure)?;
+    let sender = token_ctx_a
+        .account_id_from_signer(&msg.packet_data.sender)
+        .ok_or(TokenTransferError::ParseAccountFailure)?;
 
     if is_sender_chain_source(
         msg.port_id_on_a.clone(),

@@ -23,12 +23,14 @@ pub fn process_recv_packet_execute<Ctx: TokenTransferExecutionContext>(
         .can_receive_coins()
         .map_err(|err| (ModuleExtras::empty(), err))?;
 
-    let receiver_account = data.receiver.clone().try_into().map_err(|_| {
-        (
-            ModuleExtras::empty(),
-            TokenTransferError::ParseAccountFailure,
-        )
-    })?;
+    let receiver_account = ctx_b
+        .account_id_from_signer(&data.receiver)
+        .ok_or_else(|| {
+            (
+                ModuleExtras::empty(),
+                TokenTransferError::ParseAccountFailure,
+            )
+        })?;
 
     let extras = if is_receiver_chain_source(
         packet.port_id_on_a.clone(),
