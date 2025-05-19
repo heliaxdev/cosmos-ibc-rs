@@ -1,7 +1,7 @@
 use ibc_primitives::prelude::*;
 
 use crate::error::IdentifierError as Error;
-use crate::identifiers::{ChannelId, ConnectionId};
+use crate::identifiers::ConnectionId;
 
 const VALID_SPECIAL_CHARS: &str = "._+-#[]<>";
 
@@ -124,7 +124,6 @@ pub fn validate_port_identifier(id: &str) -> Result<(), Error> {
 pub fn validate_channel_identifier(id: &str) -> Result<(), Error> {
     validate_identifier_chars(id)?;
     validate_identifier_length(id, 8, 64)?;
-    validate_named_u64_index(id, ChannelId::prefix())?;
     Ok(())
 }
 
